@@ -1,6 +1,9 @@
 package mnemonic
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func Test_toBitsString(t *testing.T) {
 	tests := []struct {
@@ -141,6 +144,131 @@ func Test_getEntropyBits(t *testing.T) {
 
 		if r != c.result {
 			t.Fatalf("expected %s bits but got %s", c.result, r)
+		}
+	}
+}
+
+func Test_wordIDx(t *testing.T) {
+	tests := []struct {
+		bits  string
+		sbits []string
+		err   bool
+	}{
+		{
+			bits: "1111101000010100111010001110011011101110100111001111110100111010001010100010110011111111100001010110",
+			err:  true,
+		},
+
+		{
+			bits: "111110010001100111100011001011011011000101000100100100111000110001001000100011110101010010101000100010110010100110001110111111000000",
+			sbits: []string{
+				"11111001000",
+				"11001111000",
+				"11001011011",
+				"01100010100",
+				"01001001001",
+				"11000110001",
+				"00100010001",
+				"11101010100",
+				"10101000100",
+				"01011001010",
+				"01100011101",
+				"11111000000",
+			},
+		},
+	}
+
+	for _, c := range tests {
+		sbits, err := wordIDxs(c.bits)
+		if err != nil {
+			if c.err {
+				continue
+			}
+
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if !reflect.DeepEqual(c.sbits, sbits) {
+			t.Fatalf("wordIdx mismatch")
+		}
+	}
+}
+
+func Test_wordsFromIDxs(t *testing.T) {
+	tests := []struct {
+		wordsIDxs []string
+		words     []string
+		err       bool
+	}{
+
+		{
+			wordsIDxs: []string{
+				"11111001000",
+				"11001111000",
+				"11001011011",
+				"01100010100",
+				"01001001001",
+				"randomstring",
+				"00100010001",
+				"11101010100",
+				"10101000100",
+				"01011001010",
+				"01100011101",
+				"11111000000",
+			},
+			err: true,
+		},
+
+		{
+			wordsIDxs: []string{
+				"11111001000",
+				"11001111000",
+				"11001011011",
+				"01100010100",
+				"01001001001",
+				"11000110001",
+				"00100010001",
+				"11101010100",
+				"10101000100",
+				"01011001010",
+				"01100011101",
+				"11111000000",
+			},
+
+			words: []string{
+				"weekend",
+				"someone",
+				"slice",
+				"glad",
+				"empty",
+				"shiver",
+				"captain",
+				"tunnel",
+				"possible",
+				"flock",
+				"glove",
+				"way",
+			},
+		},
+	}
+
+	wordList, err := loadWords("./wordlist/english.txt")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	for _, c := range tests {
+		words, err := wordsFromIDxs(c.wordsIDxs, wordList)
+		if err != nil {
+			if c.err {
+				continue
+			}
+
+			t.Fatalf("unexpected err: %v", err)
+		}
+
+		if !reflect.DeepEqual(words, c.words) {
+			t.Fatalf("words mismatch: expected %v got %v", c.words, words)
 		}
 	}
 }
