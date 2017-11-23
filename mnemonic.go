@@ -139,6 +139,30 @@ func loadWords(path string) (words []string, err error) {
 	return words, nil
 }
 
+// newGenerator loads the words and returns a generator
+func newGenerator(path string) (*Generator, error) {
+	words, err := loadWords(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(words) != 2048 {
+		return nil, fmt.Errorf("require 2048 words but got %d", len(words))
+	}
+
+	return &Generator{path, words}, nil
+}
+
+// New loads default words and returns a generator
+func New() (*Generator, error) {
+	return newGenerator("./wordlist/english.txt")
+}
+
+// NewFromPath loads the words from provided path and returns the generator
+func NewFromPath(wordListPath string) (*Generator, error) {
+	return newGenerator(wordListPath)
+}
+
 // ToMnemonic returns mnemonic words from entropy
 func (g *Generator) ToMnemonic(entropy []byte) (words []string, err error) {
 	defer func() {
