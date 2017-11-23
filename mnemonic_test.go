@@ -272,3 +272,29 @@ func Test_wordsFromIDxs(t *testing.T) {
 		}
 	}
 }
+
+func TestToSeed(t *testing.T) {
+	tests := []struct {
+		mnemonic []string
+		password string
+		seed     string
+	}{
+		{
+			mnemonic: []string{"analyst", "latin", "claw", "cube", "pelican", "copy", "clap", "royal", "task", "elegant", "gravity", "during", "nut", "situate", "seat"},
+			seed:     "70e8290d465c494b093076f51adb77f09b91334559e1abd32164c5536cb11a82ead3a1af267ff9888f948f20618da4eb8f7dd2b7225e6bea549678db1ec51c42",
+		},
+
+		{
+			mnemonic: []string{"analyst", "latin", "claw", "cube", "pelican", "copy", "clap", "royal", "task", "elegant", "gravity", "during", "nut", "situate", "seat"},
+			password: "password",
+			seed:     "b693da578716e078a3e533d62ec0b86528cb9edcfcb31dddd31943bde9eff841a2c94edd502d4e705a6e701fd0c0da6390d564df8b8fc45e47d445ad80262493",
+		},
+	}
+
+	for _, c := range tests {
+		r := ToSeed(c.mnemonic, c.password)
+		if c.seed != r {
+			t.Fatalf("expected %s seed but got %s", c.seed, r)
+		}
+	}
+}

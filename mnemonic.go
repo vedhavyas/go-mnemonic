@@ -5,11 +5,17 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/sha512"
 	"fmt"
 	"io"
 	"os"
 	"strconv"
 	"strings"
+
+	"encoding/hex"
+
+	"golang.org/x/crypto/pbkdf2"
+	"golang.org/x/text/unicode/norm"
 )
 
 var (
@@ -22,12 +28,6 @@ var (
 	// list of accepted entropy + checksum lengths from BIP-39
 	acceptedECLength = []int{132, 165, 198, 231, 264}
 )
-
-// Generator generates mnemonic words and seed
-type Generator struct {
-	wordListPath string   // file path to load words from
-	words        []string // words to be used
-}
 
 // toBitsString returns the binary form of []byte
 func toBitsString(data []byte) string {
@@ -136,40 +136,38 @@ func loadWords(path string) (words []string, err error) {
 		return nil, err
 	}
 
-	return words, nil
-}
-
-// newGenerator loads the words and returns a generator
-func newGenerator(path string) (*Generator, error) {
-	words, err := loadWords(path)
-	if err != nil {
-		return nil, err
-	}
-
 	if len(words) != 2048 {
 		return nil, fmt.Errorf("require 2048 words but got %d", len(words))
 	}
 
-	return &Generator{path, words}, nil
+	return words, nil
 }
 
-// New loads default words and returns a generator
-func New() (*Generator, error) {
-	return newGenerator("./wordlist/english.txt")
+// normalise normalises the string to NFKD
+func normalise(s string) string {
+	return norm.NFKD.String(s)
 }
 
-// NewFromPath loads the words from provided path and returns the generator
-func NewFromPath(wordListPath string) (*Generator, error) {
-	return newGenerator(wordListPath)
+// ToSeed returns the seed from the given mnemonic words and password
+func ToSeed(words []string, password string) string {
+	pwd := normalise(strings.Join(words, " "))
+	salt := normalise("mnemonic" + password)
+	seed := pbkdf2.Key([]byte(pwd), []byte(salt), 2048, 64, sha512.New)
+	return hex.EncodeToString(seed)
 }
 
 // ToMnemonic returns mnemonic words from entropy
-func (g *Generator) ToMnemonic(entropy []byte) (words []string, err error) {
+func ToMnemonic(entropy []byte, wordListPath string) (words []string, err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("failed to generate mnemonic words: %v", err)
 		}
 	}()
+
+	wordList, err := loadWords(wordListPath)
+	if err != nil {
+		return nil, err
+	}
 
 	ebits, err := getEntropyBits(entropy)
 	if err != nil {
@@ -181,7 +179,7 @@ func (g *Generator) ToMnemonic(entropy []byte) (words []string, err error) {
 		return nil, err
 	}
 
-	words, err = wordsFromIDxs(idxs, g.words)
+	words, err = wordsFromIDxs(idxs, wordList)
 	if err != nil {
 		return nil, err
 	}
