@@ -2,7 +2,7 @@
     
 Reference implementation of a mnemonic code or mnemonic sentence -- a group of easy to remember words -- for the generation of deterministic wallets.
 
-##BIP Paper
+## BIP Paper
 
 See https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki for full specification
 
