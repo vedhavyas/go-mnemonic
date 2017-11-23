@@ -157,12 +157,17 @@ func ToSeed(words []string, password string) string {
 }
 
 // ToMnemonic returns mnemonic words from entropy
+// If wordListPath is empty, default list specified in bip-39 is used
 func ToMnemonic(entropy []byte, wordListPath string) (words []string, err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("failed to generate mnemonic words: %v", err)
 		}
 	}()
+
+	if wordListPath == "" {
+		wordListPath = "./wordlist/english.txt"
+	}
 
 	wordList, err := loadWords(wordListPath)
 	if err != nil {

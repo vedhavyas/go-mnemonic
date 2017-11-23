@@ -24,7 +24,7 @@ pre-defined list
 ```go
 func ToMnemonic(entropy []byte, wordListPath string) (words []string, err error)
 ```
-ToMnemonic returns mnemonic words from entropy
+ToMnemonic returns mnemonic words from entropy. If wordListPath is empty, default list specified in bip-39 is used
 
 #### func  ToSeed
 
