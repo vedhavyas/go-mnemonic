@@ -1,5 +1,4 @@
-# mnemonic
---
+# go-mnemonic
     
 Reference implementation of a mnemonic code or mnemonic sentence -- a group of easy to remember words -- for the generation of deterministic wallets.
 
